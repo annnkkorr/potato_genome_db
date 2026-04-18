@@ -3,6 +3,8 @@
 Веб-приложение для управления базой данных геномов картофеля.  
 Стек: **FastAPI · SQLAlchemy · SQLite · Pydantic v2 · Jinja2**
 
+
+
 ---
 
 ## Быстрый старт
@@ -10,6 +12,7 @@
 ```bash
 # 1. Установить зависимости
 git clone https://github.com/annnkkorr/potato_genome_db
+
 # 2. Установить зависимости
 uv sync
 
