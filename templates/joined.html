@@ -1,0 +1,77 @@
+{% extends "base.html" %}
+{% block title %}Общий вид — Potato Genome DB{% endblock %}
+{% block main_class %}wide{% endblock %}
+
+{% block content %}
+<h1>Общий вид — объединённые таблицы</h1>
+
+<!-- ── Фильтр ── -->
+<form method="get" action="/joined">
+  <div class="filters">
+    <input name="organism_name" placeholder="Название организма"
+           value="{{ filters.organism_name or '' }}">
+    <select name="ploidy_type">
+      <option value="">Все типы плоидности</option>
+      {% for pt in ploidy_types %}
+        <option value="{{ pt }}" {% if filters.ploidy_type == pt %}selected{% endif %}>{{ pt | ploidy_ru }}</option>
+      {% endfor %}
+    </select>
+    <button type="submit" class="btn btn-primary">Найти</button>
+    <a href="/joined" class="btn" style="background:#e0e0e0;color:#333">Сбросить</a>
+  </div>
+</form>
+
+<p style="margin-bottom:12px;color:#666;font-size:.85em">
+  Найдено записей: {{ rows|length }}
+</p>
+
+<div class="table-wrap">
+  <table>
+    <thead>
+      <tr>
+        <th>ID генома</th>
+        <th>Название организма</th>
+        <th>Плоидность</th>
+        <th>Описание</th>
+        <th>
+          Дата публикации
+          <span class="sort-links">
+            <a href="?organism_name={{ filters.organism_name or '' }}&ploidy_type={{ filters.ploidy_type or '' }}&sort_date=asc"
+               class="sort-btn {% if filters.sort_date == 'asc' %}sort-active{% endif %}"
+               title="Сначала старые">▲</a>
+            <a href="?organism_name={{ filters.organism_name or '' }}&ploidy_type={{ filters.ploidy_type or '' }}&sort_date=desc"
+               class="sort-btn {% if filters.sort_date == 'desc' %}sort-active{% endif %}"
+               title="Сначала новые">▼</a>
+          </span>
+        </th>
+        <th>Assembly</th>
+        <th>Тип набора</th>
+        <th>GFF3</th>
+        <th>cDNA</th>
+        <th>CDS</th>
+        <th>pep</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for r in rows %}
+      <tr>
+        <td class="col-nowrap">{{ r.genome_id }}</td>
+        <td class="col-nowrap">{{ r.organism_name }}</td>
+        <td class="col-nowrap">{{ r.ploidy_type | ploidy_ru }}</td>
+        <td class="col-desc">{{ r.description }}</td>
+        <td class="col-nowrap">{{ r.release_date | fmt_date or '—' }}</td>
+        <td class="col-file">{% if r.assembly_link %}<a href="{{ r.assembly_link }}" target="_blank">{{ r.assembly_file }}</a>{% else %}{{ r.assembly_file or '—' }}{% endif %}</td>
+        <td class="col-nowrap">{% if r.set_type %}<span class="badge-{{ r.set_type }}">{{ r.set_type }}</span>{% else %}—{% endif %}</td>
+        <td class="col-file">{% if r.gff3_link %}<a href="{{ r.gff3_link }}" target="_blank">{{ r.gff3_file }}</a>{% else %}{{ r.gff3_file or '—' }}{% endif %}</td>
+        <td class="col-file">{% if r.cdna_link %}<a href="{{ r.cdna_link }}" target="_blank">{{ r.cdna_file }}</a>{% else %}{{ r.cdna_file or '—' }}{% endif %}</td>
+        <td class="col-file">{% if r.cds_link  %}<a href="{{ r.cds_link  }}" target="_blank">{{ r.cds_file  }}</a>{% else %}{{ r.cds_file  or '—' }}{% endif %}</td>
+        <td class="col-file">{% if r.pep_link  %}<a href="{{ r.pep_link  }}" target="_blank">{{ r.pep_file  }}</a>{% else %}{{ r.pep_file  or '—' }}{% endif %}</td>
+
+      </tr>
+      {% else %}
+      <tr><td colspan="11" style="text-align:center;color:#aaa">Записи не найдены.</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% endblock %}

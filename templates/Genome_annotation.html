@@ -1,0 +1,104 @@
+{% extends "base.html" %}
+{% block title %}Геномные аннотации — База геномов картофеля{% endblock %}
+
+{% block content %}
+<h1>Геномные аннотации</h1>
+
+<!-- ── Фильтр ── -->
+<form method="get" action="/annotations">
+  <div class="filters">
+    <input name="genome_id" placeholder="Поиск по ID генома"
+           value="{{ filters.genome_id or '' }}">
+    <select name="set_type">
+      <option value="">Все типы наборов</option>
+      <option value="hc"      {% if filters.set_type == 'hc'      %}selected{% endif %}>hc</option>
+      <option value="representative" {% if filters.set_type == 'representative' %}selected{% endif %}>representative</option>
+      <option value="working" {% if filters.set_type == 'working' %}selected{% endif %}>working</option>
+    </select>
+    <button type="submit" class="btn btn-primary">Найти</button>
+    <a href="/annotations" class="btn" style="background:#e0e0e0;color:#333">Сбросить</a>
+  </div>
+</form>
+
+<!-- ── Таблица ── -->
+<div class="table-wrap">
+  <table>
+    <thead>
+      <tr>
+        <th>ID генома</th><th>Тип набора</th>
+        <th>GFF3</th><th>cDNA</th><th>CDS</th><th>pep</th>
+        <th>Действие</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for row in annotations %}
+      <tr {% if edit_row and edit_row.genome_id == row.genome_id and edit_row.set_type == row.set_type %}class="row-editing"{% endif %}>
+        <td class="col-nowrap">{{ row.genome_id }}</td>
+        <td class="col-nowrap"><span class="badge-{{ row.set_type }}">{{ row.set_type }}</span></td>
+        <td>{% if row.gff3_link %}<a class="col-file" href="{{ row.gff3_link }}" target="_blank">{{ row.gff3_file }}</a>{% else %}<span class="col-file">{{ row.gff3_file }}</span>{% endif %}</td>
+        <td>{% if row.cdna_link %}<a class="col-file" href="{{ row.cdna_link }}" target="_blank">{{ row.cdna_file }}</a>{% else %}<span class="col-file">{{ row.cdna_file }}</span>{% endif %}</td>
+        <td>{% if row.cds_link  %}<a class="col-file" href="{{ row.cds_link  }}" target="_blank">{{ row.cds_file  }}</a>{% else %}<span class="col-file">{{ row.cds_file  }}</span>{% endif %}</td>
+        <td>{% if row.pep_link  %}<a class="col-file" href="{{ row.pep_link  }}" target="_blank">{{ row.pep_file  }}</a>{% else %}<span class="col-file">{{ row.pep_file  }}</span>{% endif %}</td>
+        <td>
+          <div class="action-btns">
+            <a href="/annotations/{{ row.genome_id }}/{{ row.set_type }}/edit" class="btn btn-edit">✏️ Изменить</a>
+            <form class="del-form" method="post" action="/annotations/{{ row.genome_id }}/{{ row.set_type }}/delete"
+                  onsubmit="return confirm('Удалить аннотацию {{ row.genome_id }} / {{ row.set_type }}?')">
+              <button type="submit" class="btn btn-danger">🗑 Удалить</button>
+            </form>
+          </div>
+        </td>
+      </tr>
+      {% else %}
+      <tr><td colspan="7" style="text-align:center;color:#aaa">Записи не найдены.</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+
+<!-- ── Форма редактирования ── -->
+{% if edit_row %}
+<h2>✏️ Редактирование: {{ edit_row.genome_id }} / {{ edit_row.set_type }}</h2>
+<form method="post" action="/annotations/{{ edit_row.genome_id }}/{{ edit_row.set_type }}/edit">
+  <label>Файл GFF3       <input name="gff3_file" value="{{ edit_row.gff3_file or '' }}"></label>
+  <label>Ссылка GFF3     <input name="gff3_link" value="{{ edit_row.gff3_link or '' }}"></label>
+  <label>Файл cDNA       <input name="cdna_file" value="{{ edit_row.cdna_file or '' }}"></label>
+  <label>Ссылка cDNA     <input name="cdna_link" value="{{ edit_row.cdna_link or '' }}"></label>
+  <label>Файл CDS        <input name="cds_file"  value="{{ edit_row.cds_file  or '' }}"></label>
+  <label>Ссылка CDS      <input name="cds_link"  value="{{ edit_row.cds_link  or '' }}"></label>
+  <label>Файл pep        <input name="pep_file"  value="{{ edit_row.pep_file  or '' }}"></label>
+  <label>Ссылка pep      <input name="pep_link"  value="{{ edit_row.pep_link  or '' }}"></label>
+  <div style="display:flex;gap:10px;margin-top:16px">
+    <button type="submit" class="btn btn-primary" style="margin-top:0">💾 Сохранить</button>
+    <a href="/annotations" class="btn" style="background:#e0e0e0;color:#333;margin-top:0">Отмена</a>
+  </div>
+</form>
+{% endif %}
+
+<!-- ── Добавить новую ── -->
+{% if not edit_row %}
+<h2>Добавить аннотацию</h2>
+<form method="post" action="/annotations">
+  <label>ID генома * (должен существовать в таблице Организмов)
+    <input name="genome_id" required placeholder="например, DM_v7">
+  </label>
+  <label>Тип набора *
+    <select name="set_type" required>
+      <option value="">— выбрать —</option>
+      <option value="hc">hc</option>
+      <option value="representative">representative</option>
+      <option value="working">working</option>
+    </select>
+  </label>
+  <label>Файл GFF3       <input name="gff3_file" placeholder="file.gff3"></label>
+  <label>Ссылка GFF3     <input name="gff3_link" placeholder="https://..."></label>
+  <label>Файл cDNA       <input name="cdna_file" placeholder="file_cdna.fa"></label>
+  <label>Ссылка cDNA     <input name="cdna_link" placeholder="https://..."></label>
+  <label>Файл CDS        <input name="cds_file"  placeholder="file_cds.fa"></label>
+  <label>Ссылка CDS      <input name="cds_link"  placeholder="https://..."></label>
+  <label>Файл pep        <input name="pep_file"  placeholder="file_pep.fa"></label>
+  <label>Ссылка pep      <input name="pep_link"  placeholder="https://..."></label>
+  <button type="submit" class="btn btn-primary">Добавить аннотацию</button>
+</form>
+{% endif %}
+{% endblock %}

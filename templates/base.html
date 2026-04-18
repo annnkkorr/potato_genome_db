@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>{% block title %}База геномов картофеля{% endblock %}</title>
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🍟</text></svg>">
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: 'Segoe UI', sans-serif; background: #f5f7fa; color: #333; }
+    nav { background: #2c5f2e; color: white; padding: 12px 24px; display: flex; gap: 24px; align-items: center; }
+    nav a { color: #c8e6c9; text-decoration: none; font-weight: 500; }
+    nav a:hover { color: white; }
+    nav .brand { font-size: 1.2em; font-weight: 700; color: white; margin-right: auto; }
+    main { max-width: 1200px; margin: 32px auto; padding: 0 24px; }
+    main.wide { max-width: 100%; padding: 0 32px; }
+    h1 { color: #2c5f2e; margin-bottom: 24px; }
+    h2 { color: #388e3c; margin: 24px 0 12px; }
+    /* Таблица */
+    .table-wrap { overflow-x: auto; }
+    table { width: 100%; border-collapse: collapse; background: white; border-radius: 8px; overflow: hidden; box-shadow: 0 1px 4px rgba(0,0,0,.1); }
+    th { background: #2c5f2e; color: white; padding: 10px 14px; text-align: left; font-size: .85em; white-space: nowrap; }
+    td { padding: 9px 14px; border-bottom: 1px solid #e8f5e9; font-size: .9em; }
+    .col-nowrap { white-space: nowrap; }
+    .col-desc { max-width: 340px; word-break: break-word; }
+    .col-file { word-break: break-all; font-family: monospace; font-size: .82em; }
+    tr:last-child td { border-bottom: none; }
+    tr:hover td { background: #f1f8e9; }
+    /* Формы */
+    form { background: white; padding: 20px; border-radius: 8px; box-shadow: 0 1px 4px rgba(0,0,0,.1); max-width: 640px; }
+    label { display: block; margin-top: 12px; font-size: .85em; color: #555; font-weight: 600; }
+    input, select { width: 100%; margin-top: 4px; padding: 8px 10px; border: 1px solid #ccc; border-radius: 5px; font-size: .9em; }
+    input:focus, select:focus { outline: none; border-color: #2c5f2e; }
+    .btn { display: inline-block; margin-top: 16px; padding: 9px 22px; border: none; border-radius: 5px; cursor: pointer; font-size: .9em; font-weight: 600; }
+    .btn-primary { background: #2c5f2e; color: white; }
+    .btn-primary:hover { background: #1b5e20; }
+    /* Строка фильтров */
+    .filters { display: flex; gap: 12px; flex-wrap: wrap; margin-bottom: 20px; }
+    .filters input, .filters select { width: auto; flex: 1 1 160px; }
+    .filters .btn { margin-top: 0; }
+    /* Сообщения */
+    .msg { padding: 10px 16px; border-radius: 6px; margin-bottom: 16px; font-size: .9em; }
+    .msg-ok  { background: #e8f5e9; color: #2e7d32; border: 1px solid #a5d6a7; }
+    .msg-err { background: #ffebee; color: #c62828; border: 1px solid #ef9a9a; }
+    td a { color: #2c5f2e; }
+    .del-form { display: inline; }
+    /* Кнопки действий */
+    .btn-edit { background: #1565c0; color: white; padding: 5px 12px; font-size: .8em; text-decoration: none; border-radius: 5px; font-weight: 600; }
+    .btn-edit:hover { background: #0d47a1; }
+    .btn-danger { padding: 5px 12px; font-size: .8em; background: transparent; color: #c62828; border: 2px solid #c62828; border-radius: 5px; font-weight: 600; cursor: pointer; }
+    .btn-danger:hover { background: #ffebee; }
+    .action-btns { display: flex; gap: 6px; align-items: center; flex-wrap: nowrap; }
+    tr.row-editing td { background: #fff8e1 !important; border-left: 3px solid #f9a825; }
+    /* Кнопки сортировки в заголовке */
+    .sort-links { margin-left: 4px; white-space: nowrap; }
+    .sort-btn { color: rgba(255,255,255,.55); text-decoration: none; font-size: .85em; padding: 0 2px; }
+    .sort-btn:hover { color: white; }
+    .sort-active { color: #ffeb3b; font-weight: 900; }
+    /* Бейджи типов наборов */
+    .badge-hc             { background: #1565c0; color: white; padding: 2px 8px; border-radius: 10px; font-size: .78em; font-weight: 700; white-space: nowrap; }
+    .badge-representative { background: #6a1b9a; color: white; padding: 2px 8px; border-radius: 10px; font-size: .78em; font-weight: 700; white-space: nowrap; }
+    .badge-working        { background: #e65100; color: white; padding: 2px 8px; border-radius: 10px; font-size: .78em; font-weight: 700; white-space: nowrap; }
+    /* Убрать фон/тень у form внутри таблицы */
+    td form, .del-form { background: none; padding: 0; box-shadow: none; max-width: none; border-radius: 0; }
+  </style>
+</head>
+<body>
+<nav>
+  <span class="brand">🥔 Potato Genome DB</span>
+  <a href="/organisms">Организмы</a>
+  <a href="/assemblies">Сборки</a>
+  <a href="/annotations">Аннотации</a>
+  <a href="/joined">Общий вид</a>
+</nav>
+<main class="{% block main_class %}{% endblock %}">
+  {% if message %}
+    <div class="msg msg-ok">{{ message }}</div>
+  {% endif %}
+  {% if error %}
+    <div class="msg msg-err">{{ error }}</div>
+  {% endif %}
+  {% block content %}{% endblock %}
+</main>
+</body>
+</html>

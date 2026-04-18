@@ -1,0 +1,98 @@
+{% extends "base.html" %}
+{% block title %}Геномные сборки — База геномов картофеля{% endblock %}
+
+{% block content %}
+<h1>Геномные сборки</h1>
+
+<!-- ── Фильтр ── -->
+<form method="get" action="/assemblies">
+  <div class="filters">
+    <input name="genome_id" placeholder="Поиск по ID генома"
+           value="{{ filters.genome_id or '' }}">
+    <button type="submit" class="btn btn-primary">Найти</button>
+    <a href="/assemblies" class="btn" style="background:#e0e0e0;color:#333">Сбросить</a>
+  </div>
+</form>
+
+<!-- ── Таблица ── -->
+<div class="table-wrap">
+  <table>
+    <thead>
+      <tr>
+        <th>ID генома</th><th>Файл сборки</th>
+        <th>Masked file</th><th>Soft-masked file</th>
+        <th>
+          Дата публикации
+          <span class="sort-links">
+            <a href="?genome_id={{ filters.genome_id or '' }}&sort_date=asc"
+               class="sort-btn {% if filters.sort_date == 'asc' %}sort-active{% endif %}"
+               title="Сначала старые">▲</a>
+            <a href="?genome_id={{ filters.genome_id or '' }}&sort_date=desc"
+               class="sort-btn {% if filters.sort_date == 'desc' %}sort-active{% endif %}"
+               title="Сначала новые">▼</a>
+          </span>
+        </th>
+        <th>Действие</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for row in assemblies %}
+      <tr {% if edit_row and edit_row.genome_id == row.genome_id %}class="row-editing"{% endif %}>
+        <td class="col-nowrap">{{ row.genome_id }}</td>
+        <td class="col-file">{% if row.assembly_link %}<a href="{{ row.assembly_link }}" target="_blank">{{ row.assembly_file }}</a>{% else %}{{ row.assembly_file }}{% endif %}</td>
+        <td class="col-file">{% if row.masked_link %}<a href="{{ row.masked_link }}" target="_blank">{{ row.masked_file }}</a>{% else %}{{ row.masked_file }}{% endif %}</td>
+        <td class="col-file">{% if row.softmasked_link %}<a href="{{ row.softmasked_link }}" target="_blank">{{ row.softmasked_file }}</a>{% else %}{{ row.softmasked_file }}{% endif %}</td>
+        <td class="col-nowrap">{{ row.release_date | fmt_date }}</td>
+        <td>
+          <div class="action-btns">
+            <a href="/assemblies/{{ row.genome_id }}/edit" class="btn btn-edit">✏️ Изменить</a>
+            <form class="del-form" method="post" action="/assemblies/{{ row.genome_id }}/delete"
+                  onsubmit="return confirm('Удалить сборку {{ row.genome_id }}?')">
+              <button type="submit" class="btn btn-danger">🗑 Удалить</button>
+            </form>
+          </div>
+        </td>
+      </tr>
+      {% else %}
+      <tr><td colspan="6" style="text-align:center;color:#aaa">Записи не найдены.</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+
+<!-- ── Форма редактирования ── -->
+{% if edit_row %}
+<h2>✏️ Редактирование: {{ edit_row.genome_id }}</h2>
+<form method="post" action="/assemblies/{{ edit_row.genome_id }}/edit">
+  <label>Файл сборки         <input name="assembly_file"   value="{{ edit_row.assembly_file   or '' }}"></label>
+  <label>Ссылка на сборку    <input name="assembly_link"   value="{{ edit_row.assembly_link   or '' }}"></label>
+  <label>Masked file         <input name="masked_file"     value="{{ edit_row.masked_file     or '' }}"></label>
+  <label>Masked link         <input name="masked_link"     value="{{ edit_row.masked_link     or '' }}"></label>
+  <label>Soft-masked file    <input name="softmasked_file" value="{{ edit_row.softmasked_file or '' }}"></label>
+  <label>Soft-masked link    <input name="softmasked_link" value="{{ edit_row.softmasked_link or '' }}"></label>
+  <label>Дата публикации     <input name="release_date" placeholder="дд/мм/гггг" value="{{ edit_row.release_date | fmt_date }}"></label>
+  <div style="display:flex;gap:10px;margin-top:16px">
+    <button type="submit" class="btn btn-primary" style="margin-top:0">💾 Сохранить</button>
+    <a href="/assemblies" class="btn" style="background:#e0e0e0;color:#333;margin-top:0">Отмена</a>
+  </div>
+</form>
+{% endif %}
+
+<!-- ── Добавить новую ── -->
+{% if not edit_row %}
+<h2>Добавить сборку</h2>
+<form method="post" action="/assemblies">
+  <label>ID генома * (должен существовать в таблице Организмов)
+    <input name="genome_id" required placeholder="например, DM_v7">
+  </label>
+  <label>Файл сборки          <input name="assembly_file"   placeholder="filename.fa"></label>
+  <label>Ссылка на сборку     <input name="assembly_link"   placeholder="https://..."></label>
+  <label>Masked file          <input name="masked_file"     placeholder="filename_masked.fa"></label>
+  <label>Masked link          <input name="masked_link"     placeholder="https://..."></label>
+  <label>Soft-masked file     <input name="softmasked_file" placeholder="filename_soft.fa"></label>
+  <label>Soft-masked link     <input name="softmasked_link" placeholder="https://..."></label>
+  <label>Дата публикации      <input name="release_date" placeholder="дд/мм/гггг"></label>
+  <button type="submit" class="btn btn-primary">Добавить сборку</button>
+</form>
+{% endif %}
+{% endblock %}
