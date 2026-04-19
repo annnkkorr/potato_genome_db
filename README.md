@@ -16,14 +16,12 @@ git clone https://github.com/annnkkorr/potato_genome_db
 # 2. Установить зависимости
 uv sync
 
-# 3. Если база данных уже существует — выполнить миграцию (один раз)
-uv run python migrate.py
-
-# 4. Запустить сервер
-uv run uvicorn main:app --reload
+# 3. Запустить сервер
+uv run uvicorn main:app 
 ```
 
 ---
+<img width="1850" height="899" alt="image" src="https://github.com/user-attachments/assets/3356f554-daf0-44fd-bc73-10dfc8f8df9c" />
 
 ## Схема базы данных
 
